@@ -7,8 +7,14 @@ from sklearn.preprocessing import StandardScaler
 import os
 
 # 1. Load Data
-# Pastikan file heart.csv sudah ada di root folder repositori Anda
-df = pd.read_csv('heart.csv')
+# Kita tentukan path file dengan menunjuk ke direktori utama (root)
+# __file__ adalah lokasi file skrip ini
+script_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(script_dir)
+data_path = os.path.join(root_dir, 'heart.csv')
+
+# Membaca data menggunakan path yang sudah dikoreksi
+df = pd.read_csv(data_path)
 
 # 2. Preprocessing
 X = df.drop(columns=['target'])
@@ -18,7 +24,6 @@ X_scaled = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
 # 3. Training & Tracking dengan MLFlow
-# MLFlow akan menggunakan kredensial dari GitHub Secrets yang sudah Anda set
 mlflow.set_experiment("Heart_Disease_Prediction")
 
 with mlflow.start_run():
