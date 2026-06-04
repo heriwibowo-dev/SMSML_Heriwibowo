@@ -5,15 +5,19 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import os
-import dagshub # Tambahkan ini agar terhubung ke DagsHub
+import dagshub
 
 # 1. Inisialisasi Koneksi DagsHub
-# Ini akan otomatis mengambil kredensial dari environment variable (Secrets)
-dagshub.init(repo_owner='heriwibowo-dev', repo_name='SMSML_HeriWibowo', mlflow=True)
+# Menggunakan token yang diteruskan dari GitHub Secrets (DAGSHUB_TOKEN)
+dagshub.init(
+    repo_owner='heriwibowo-dev', 
+    repo_name='SMSML_HeriWibowo', 
+    mlflow=True,
+    token=os.environ.get('DAGSHUB_TOKEN') 
+)
 
 # 2. Load Data
 script_dir = os.path.dirname(os.path.abspath(__file__))
-# Jika script ada di folder Membangun_model, naik 1 level ke root
 root_dir = os.path.dirname(script_dir)
 data_path = os.path.join(root_dir, 'heart.csv')
 
