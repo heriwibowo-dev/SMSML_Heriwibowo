@@ -8,20 +8,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    # 1. Checkout kode terbaru
+    - uses: actions/checkout@v4
     
+    # 2. Setup Python versi terbaru
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.12'
         
+    # 3. Upgrade pip sebelum install dependencies
     - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
         
+    # 4. Menjalankan skrip training
+    # Memastikan MLFlow terhubung menggunakan Secrets yang sudah Anda simpan
     - name: Run training script
       env:
         MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
         MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+        MLFLOW_TRACKING_URI: "https://dagshub.com/heriwibowo-dev/SMSML_HeriWibowo.mlflow"
       run: |
         python Membangun_model/modelling.py
