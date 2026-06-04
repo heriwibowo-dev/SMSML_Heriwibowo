@@ -8,7 +8,11 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
+      # Kredensial untuk DagsHub & MLflow
       DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+      MLFLOW_TRACKING_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }} # Atau username DagsHub Anda
+      MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+      # Kredensial untuk Docker
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
@@ -32,7 +36,7 @@ jobs:
         run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
       - name: Build Docker Image
-        run: docker build -t $DOCKERHUB_USERNAME/heart-disease-model:latest .
+        run: docker build -t "$DOCKERHUB_USERNAME/heart-disease-model:latest" .
 
       - name: Push Docker Image
-        run: docker push $DOCKERHUB_USERNAME/heart-disease-model:latest
+        run: docker push "$DOCKERHUB_USERNAME/heart-disease-model:latest"
