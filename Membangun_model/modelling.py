@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import mlflow
 import mlflow.sklearn
@@ -7,49 +8,52 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
 import dagshub
 
-# 1. PENGATURAN OTORISASI (Wajib untuk GitHub Actions)
-# Jika DAGSHUB_TOKEN tersedia di environment (dari Secrets), kita masukkan ke MLflow
-if "DAGSHUB_TOKEN" in os.environ:
-    os.environ["MLFLOW_TRACKING_USERNAME"] = "heriwibowo-dev" 
-    os.environ["MLFLOW_TRACKING_PASSWORD"] = os.environ["DAGSHUB_TOKEN"]
-    # Opsional: Jika library membutuhkan ini secara eksplisit
-    os.environ["DAGSHUB_USER_TOKEN"] = os.environ["DAGSHUB_TOKEN"]
-
-# 2. Inisialisasi DagsHub
-# Tanpa argumen 'token=' untuk menghindari TypeError
+# --- 1. OTENTIKASI OTOMATIS ---
+# Jika kita berada di GitHub Actions, variabel DAGSHUB_TOKEN sudah ada.
+# Library dagshub akan membaca variabel tersebut secara otomatis.
+# Kita tidak perlu lagi menulis 'token=' di dalam init() untuk menghindari TypeError.
 dagshub.init(repo_owner='heriwibowo-dev', repo_name='SMSML_HeriWibowo', mlflow=True)
 
-# 3. Load Data
+# Jika masih ada kendala, kita paksa MLflow menggunakan kredensial dari environment
+if "DAGSHUB_TOKEN" in os.environ:
+    os.environ["MLFLOW_TRACKING_USERNAME"] = "heriwibowo-dev"
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = os.environ["DAGSHUB_TOKEN"]
+
+# --- 2. LOAD DATA ---
+# Menggunakan path relatif agar script bisa berjalan di mana saja
 script_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(script_dir)
 df = pd.read_csv(os.path.join(root_dir, 'heart.csv'))
 
-# 4. Preprocessing & Training
+# --- 3. PREPROCESSING & TRAINING ---
 X = df.drop(columns=['target'])
 y = df['target']
+
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
+# --- 4. TRAINING & LOGGING ---
 mlflow.set_experiment("Heart_Disease_Prediction")
 
-# 5. Training & Logging
 with mlflow.start_run():
+    # Training
     model = RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)
     
+    # Log model ke MLflow
     mlflow.sklearn.log_model(model, "model")
     
-    # Confusion Matrix
+    # Log Confusion Matrix
     plt.figure(figsize=(6,4))
     sns.heatmap(confusion_matrix(y_test, model.predict(X_test)), annot=True, fmt='d', cmap='Blues')
+    plt.title("Confusion Matrix")
     plt.savefig("confusion_matrix.png")
     mlflow.log_artifact("confusion_matrix.png")
     plt.close()
     
-    # Feature Importance
+    # Log Feature Importance
     plt.figure(figsize=(8,6))
     pd.Series(model.feature_importances_, index=X.columns).nlargest(10).plot(kind='barh')
     plt.title("Top 10 Feature Importance")
@@ -58,7 +62,8 @@ with mlflow.start_run():
     mlflow.log_artifact("feature_importance.png")
     plt.close()
     
-    # Log Metric
+    # Log Accuracy
     accuracy = model.score(X_test, y_test)
     mlflow.log_metric("accuracy", accuracy)
-    print(f"Training berhasil! Akurasi: {accuracy}")
+    
+    print(f"Training selesai. Akurasi: {accuracy:.4f}")
