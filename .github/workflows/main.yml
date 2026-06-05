@@ -11,8 +11,8 @@ jobs:
       DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      # Pastikan MLFLOW menggunakan token yang sama dengan DAGSHUB_TOKEN
-      MLFLOW_TRACKING_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      # Gunakan username DagsHub Anda untuk MLFLOW
+      MLFLOW_TRACKING_USERNAME: "heriwibowo-dev" 
       MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
 
     steps:
@@ -29,8 +29,6 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run training script
-        # Menambahkan --no-cache atau flag lain jika perlu, 
-        # namun utamanya adalah memastikan environment variables tersedia
         run: python Membangun_model/modelling.py
 
       - name: Log in to Docker Hub
