@@ -1,0 +1,22 @@
+LAPORAN EKSPERIMEN MACHINE LEARNING
+Nama Siswa : Heri Wibowo
+Proyek     : SMSML_HeriWibowo
+Tanggal    : 5 Juni 2026
+
+1. TUJUAN EKSPERIMEN
+   Melakukan prediksi penyakit jantung (Heart Disease Prediction) menggunakan algoritma Random Forest Classifier dan melakukan optimasi hyperparameter untuk mendapatkan performa model terbaik.
+
+2. METODOLOGI
+   - Dataset: Heart Disease Dataset.
+   - Preprocessing: Standard Scaler untuk normalisasi fitur.
+   - Algoritma: Random Forest Classifier.
+   - Tuning: Menggunakan GridSearchCV untuk mencari kombinasi n_estimators dan max_depth yang optimal.
+   - Tracking: Eksperimen dilakukan menggunakan MLflow yang terintegrasi dengan DagsHub.
+
+3. HASIL EKSPERIMEN
+   - Model standar menghasilkan akurasi sebesar 0.985.
+   - Setelah dilakukan tuning dengan GridSearchCV, model mencapai akurasi tertinggi pada 0.9853.
+   - Semua hasil eksperimen, metrik, dan model akhir telah disimpan sebagai artefak di DagsHub.
+
+4. KESIMPULAN
+   Implementasi pipeline otomatisasi menggunakan GitHub Actions berhasil berjalan dengan baik. Proses training hingga tuning tersinkronisasi secara otomatis ke DagsHub, memudahkan pelacakan versi model dan hasil eksperimen.
