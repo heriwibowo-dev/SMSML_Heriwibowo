@@ -3,16 +3,21 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
+  workflow_dispatch: # Memungkinkan Anda menjalankan manual di tab Actions
 
 jobs:
-  build:
+  train-model:
     runs-on: ubuntu-latest
+    
+    # BAGIAN KRUSIAL: Token harus didefinisikan sebagai environment variable di sini
     env:
-      # PENTING: Menghubungkan secret ke environment variable agar terbaca oleh skrip
       DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+      MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_TOKEN }}
+      MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
       
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,4 +30,5 @@ jobs:
           pip install pandas scikit-learn mlflow dagshub matplotlib seaborn
 
       - name: Run training script
+        # Menggunakan format ini agar path ditemukan dengan benar
         run: python Membangun_model/modelling.py
