@@ -1,7 +1,6 @@
 pandas
-numpy
 scikit-learn
 mlflow
 dagshub
-seaborn
 matplotlib
+seaborn
