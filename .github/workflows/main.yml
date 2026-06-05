@@ -5,17 +5,12 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     env:
-      # Token dari GitHub Secrets
+      # PENTING: Menghubungkan secret ke environment variable agar terbaca oleh skrip
       DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      # Konfigurasi MLFlow agar menggunakan Token
-      MLFLOW_TRACKING_USERNAME: "heriwibowo-dev"
-      MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
-
+      
     steps:
       - uses: actions/checkout@v4
 
@@ -27,16 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install pandas scikit-learn mlflow dagshub matplotlib seaborn
 
       - name: Run training script
         run: python Membangun_model/modelling.py
-
-      - name: Log in to Docker Hub
-        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-      - name: Build Docker Image
-        run: docker build -t "$DOCKERHUB_USERNAME/heart-disease-model:latest" .
-
-      - name: Push Docker Image
-        run: docker push "$DOCKERHUB_USERNAME/heart-disease-model:latest"
