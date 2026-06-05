@@ -10,13 +10,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import dagshub
 
-# --- OTENTIKASI OTOMATIS ---
-# dagshub.init() akan membaca DAGSHUB_TOKEN dari environment variable.
-# Tidak ada argumen 'token' untuk menghindari TypeError.
+# Inisialisasi DagsHub (Otomatis membaca DAGSHUB_TOKEN dari environment)
 dagshub.init(repo_owner='heriwibowo-dev', repo_name='SMSML_HeriWibowo', mlflow=True)
 
-# --- TRAINING & LOGGING ---
-# Load Data
+# Path dinamis untuk load data
 script_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(script_dir)
 df = pd.read_csv(os.path.join(root_dir, 'heart.csv'))
@@ -24,9 +21,9 @@ df = pd.read_csv(os.path.join(root_dir, 'heart.csv'))
 # Preprocessing
 X = df.drop(columns=['target'])
 y = df['target']
-X_train, X_test, y_train, y_test = train_test_split(
-    StandardScaler().fit_transform(X), y, test_size=0.2, random_state=42
-)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
 mlflow.set_experiment("Heart_Disease_Prediction")
 
@@ -41,6 +38,7 @@ with mlflow.start_run():
     # Confusion Matrix
     plt.figure(figsize=(6,4))
     sns.heatmap(confusion_matrix(y_test, model.predict(X_test)), annot=True, fmt='d', cmap='Blues')
+    plt.title("Confusion Matrix")
     plt.savefig("confusion_matrix.png")
     mlflow.log_artifact("confusion_matrix.png")
     plt.close()
