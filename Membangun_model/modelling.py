@@ -10,49 +10,58 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import dagshub
 
-# 1. Inisialisasi DagsHub
-# Library dagshub secara otomatis akan mengambil nilai dari environment variable
-# DAGSHUB_TOKEN, MLFLOW_TRACKING_USERNAME, dan MLFLOW_TRACKING_PASSWORD
-dagshub.init(repo_owner='heriwibowo-dev', repo_name='SMSML_HeriWibowo', mlflow=True)
+# --- OTENTIKASI & INISIALISASI ---
+# Mengambil token dari environment variable yang dikirim oleh GitHub Actions
+dagshub_token = os.environ.get("DAGSHUB_TOKEN")
 
-# 2. Path dinamis (Lebih aman untuk CI/CD)
+if not dagshub_token:
+    raise EnvironmentError("DAGSHUB_TOKEN tidak ditemukan di environment variable!")
+
+# Inisialisasi dengan memberikan token secara eksplisit untuk menghindari OAuth interaktif
+dagshub.init(
+    repo_owner='heriwibowo-dev', 
+    repo_name='SMSML_HeriWibowo', 
+    mlflow=True,
+    token=dagshub_token
+)
+
+# --- LOAD DATA ---
 script_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(script_dir)
 data_path = os.path.join(root_dir, 'heart.csv')
 
-# Cek apakah file ada sebelum load
 if not os.path.exists(data_path):
-    raise FileNotFoundError(f"File data tidak ditemukan di: {data_path}. Pastikan heart.csv berada di root direktori.")
+    raise FileNotFoundError(f"File {data_path} tidak ditemukan!")
 
 df = pd.read_csv(data_path)
 
-# 3. Preprocessing
+# --- PREPROCESSING ---
 X = df.drop(columns=['target'])
 y = df['target']
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# 4. Training & Logging
+# --- TRAINING & LOGGING ---
 mlflow.set_experiment("Heart_Disease_Prediction")
 
 with mlflow.start_run():
-    # Training
+    # Training Model
     model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
     
-    # Logging
+    # Logging Metrik & Model
     mlflow.sklearn.log_model(model, "model")
-    mlflow.log_metric("accuracy", model.score(X_test, y_test))
+    accuracy = model.score(X_test, y_test)
+    mlflow.log_metric("accuracy", accuracy)
     
-    # Confusion Matrix
+    # Logging Confusion Matrix sebagai Artifact
     plt.figure(figsize=(6,4))
     sns.heatmap(confusion_matrix(y_test, model.predict(X_test)), annot=True, fmt='d', cmap='Blues')
-    plt.title("Confusion Matrix")
+    plt.title(f"Confusion Matrix (Acc: {accuracy:.4f})")
     plt.savefig("confusion_matrix.png")
-    
-    # Log artifact
     mlflow.log_artifact("confusion_matrix.png")
-    
     plt.close()
-    print("Training dan Logging ke DagsHub Berhasil!")
+    
+    print(f"Training selesai. Akurasi: {accuracy:.4f}")
+    print("Data berhasil di-log ke DagsHub!")
