@@ -10,22 +10,33 @@ import seaborn as sns
 import os
 import dagshub
 
-# Inisialisasi DagsHub tanpa argumen 'token'
-# Library akan otomatis mengambil DAGSHUB_TOKEN dari environment variable
+# 1. PENGATURAN OTORISASI (Wajib untuk GitHub Actions)
+# Jika DAGSHUB_TOKEN tersedia di environment (dari Secrets), kita masukkan ke MLflow
+if "DAGSHUB_TOKEN" in os.environ:
+    os.environ["MLFLOW_TRACKING_USERNAME"] = "heriwibowo-dev" 
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = os.environ["DAGSHUB_TOKEN"]
+    # Opsional: Jika library membutuhkan ini secara eksplisit
+    os.environ["DAGSHUB_USER_TOKEN"] = os.environ["DAGSHUB_TOKEN"]
+
+# 2. Inisialisasi DagsHub
+# Tanpa argumen 'token=' untuk menghindari TypeError
 dagshub.init(repo_owner='heriwibowo-dev', repo_name='SMSML_HeriWibowo', mlflow=True)
 
-# Load Data
+# 3. Load Data
 script_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(script_dir)
 df = pd.read_csv(os.path.join(root_dir, 'heart.csv'))
 
-# Preprocessing & Training
+# 4. Preprocessing & Training
 X = df.drop(columns=['target'])
 y = df['target']
-X_train, X_test, y_train, y_test = train_test_split(StandardScaler().fit_transform(X), y, test_size=0.2, random_state=42)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
 mlflow.set_experiment("Heart_Disease_Prediction")
 
+# 5. Training & Logging
 with mlflow.start_run():
     model = RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)
     
@@ -41,8 +52,13 @@ with mlflow.start_run():
     # Feature Importance
     plt.figure(figsize=(8,6))
     pd.Series(model.feature_importances_, index=X.columns).nlargest(10).plot(kind='barh')
+    plt.title("Top 10 Feature Importance")
+    plt.tight_layout()
     plt.savefig("feature_importance.png")
     mlflow.log_artifact("feature_importance.png")
     plt.close()
     
-    mlflow.log_metric("accuracy", model.score(X_test, y_test))
+    # Log Metric
+    accuracy = model.score(X_test, y_test)
+    mlflow.log_metric("accuracy", accuracy)
+    print(f"Training berhasil! Akurasi: {accuracy}")
