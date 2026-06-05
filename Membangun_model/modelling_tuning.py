@@ -1,5 +1,5 @@
 import os
-# SET VARIABEL LINGKUNGAN PALING ATAS SEBELUM IMPORT DAGSHUB
+# Set variabel lingkungan agar dibaca otomatis oleh dagshub
 os.environ['DAGSHUB_USER_TOKEN'] = os.environ.get("DAGSHUB_TOKEN", "")
 
 import dagshub
@@ -10,12 +10,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 
-# Inisialisasi dengan force_init=True
+# Inisialisasi tanpa parameter yang berpotensi error
 dagshub.init(
     repo_owner='heriwibowo-dev', 
     repo_name='SMSML_HeriWibowo', 
-    mlflow=True,
-    force_init=True
+    mlflow=True
 )
 
 # --- LOAD & PREPROCESS ---
